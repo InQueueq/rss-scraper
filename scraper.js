@@ -35,7 +35,7 @@ app.get('/articles',async (req, res)=>{
 })
 
 const job = new CronJob({
-    cronTime: '*/10 * * * * *',
+    cronTime: '* */5 * * * *',
     onTick: async function() {
         const articles = mongoose.connection.db.collection('articles');
         const maxPublishingDate = await articles.find().count() <= 0 ? new Date(1991,11) : (await articles.find().sort({pubDate:-1}).limit(1).toArray())[0].pubDate;
