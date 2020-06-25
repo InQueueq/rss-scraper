@@ -11,6 +11,9 @@ const TelegramBot = require('node-telegram-bot-api');
 const TOKEN = '1181561733:AAE_yN_GOadfb7jZnBtlilO7RH04tx6jGNs';
 const id = [];
 
+const parser = new Parser();
+
+
 const bot = new TelegramBot(TOKEN,{
     polling: true
 })
@@ -23,65 +26,34 @@ bot.onText(/\/start/, function (msg, match) {
 // API paginates 20 posts from DB
 //
 
-app.get('/articles',paginatedResults(Article),(req, res)=>{
-    res.json(res.paginatedResults);
+app.get('/articles',async (req, res)=>{
+    const results = {};
+    const page = parseInt(req.query.page);
+    const startIndex = (page - 1) * paginationLimit;
+    results.results = await Article.find().limit(paginationLimit).skip(startIndex).exec();
+    res.json(results);
 })
 
-function paginatedResults(model){
-    return async(req, res, next)=>{
-        const page = parseInt(req.query.page);
-        const startIndex = (page - 1) * paginationLimit;
-        const endIndex = page * paginationLimit;
-        const ceilIndex = await mongoose.connection.db.collection('articles').countDocuments();
-        const results = {};
-        if(endIndex < ceilIndex){
-            results.next = {
-                page: page + 1,
-                limit: paginationLimit
-            }
-        }
-        if(startIndex > 0){
-            results.previous = {
-                page: page - 1,
-                limit:paginationLimit
-            }
-        }
-        try{
-            results.results = await model.find().limit(paginationLimit).skip(startIndex).exec()
-            res.paginatedResults = results;
-            next()
-        }
-        catch (e) {
-            res.status(500).json({message:e.message})
-        }
-    }
-}
 const job = new CronJob({
-    cronTime: '0 */1 * * * *',
+    cronTime: '*/10 * * * * *',
     onTick: async function() {
-        const parser = new Parser();
-        const articles = mongoose.connection.db.collection('articles')
+        const articles = mongoose.connection.db.collection('articles');
+        const maxPublishingDate = await articles.find().count() <= 0 ? new Date(1991,11) : (await articles.find().sort({pubDate:-1}).limit(1).toArray())[0].pubDate;
         const feed = await parser.parseURL("https://news.ycombinator.com/rss");
-        feed.items.map(currentItem => {
-            articles.find({title:currentItem.title}).count().then(count=>{
-                if(count <= 0){
-                    id.forEach(userId=>{
-                        bot.sendMessage(userId,`New post is out! \n${currentItem.title}\n${currentItem.link}`)
-                    })
-                    const article = new Article(currentItem);
-                    article.save()
-                            .then(item => {console.log("item saved to database");
-                            })
-                            .catch(err=>{console.log(err);
-                            });
-                }
-            }).catch(err=>{
-                console.log(err);
-            });
-        });
+        const filteredArticles = feed.items.filter(item=>new Date(item.pubDate) > maxPublishingDate);
+        filteredArticles.map(item=>{
+            id.forEach(userId=>{
+                bot.sendMessage(userId,`New post is out! \n${item.title}\n${item.link}`)
+            })
+            const article = new Article(item);
+            article.save()
+                .then(item => {console.log("The item has been to database");
+                })
+                .catch(err=>{console.log(err);
+                });
+        })
     }
 });
-
 mongoose.connection.on('open',function(err,db) {
     job.start();
 });
