@@ -13,6 +13,7 @@
     "cron": "^1.8.2",
     "express": "^4.17.1",
     "mongoose": "^5.9.19",
+    "node-telegram-bot-api": "^0.50.0",
     "rss-parser": "^3.8.0"
   }
 }

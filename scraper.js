@@ -7,10 +7,20 @@ const express = require('express')
 const app = express()
 const PORT = 5000 || process.env.PORT;
 const paginationLimit = 20;
+const TelegramBot = require('node-telegram-bot-api');
+const TOKEN = '1181561733:AAE_yN_GOadfb7jZnBtlilO7RH04tx6jGNs';
+const id = [];
 
+const bot = new TelegramBot(TOKEN,{
+    polling: true
+})
+bot.onText(/\/start/, function (msg, match) {
+    id.push(msg.from.id);
+    bot.sendMessage(msg.from.id,`Hello ${msg.from.first_name}, welcome!`);
+});
 // Call it once in constant N mins
 // Save posts to MongoDB
-// API gets 20 posts from DB
+// API paginates 20 posts from DB
 //
 
 app.get('/articles',paginatedResults(Article),(req, res)=>{
@@ -47,7 +57,7 @@ function paginatedResults(model){
     }
 }
 const job = new CronJob({
-    cronTime: '0 */5 * * * *',
+    cronTime: '0 */1 * * * *',
     onTick: async function() {
         const parser = new Parser();
         const articles = mongoose.connection.db.collection('articles')
@@ -55,6 +65,9 @@ const job = new CronJob({
         feed.items.map(currentItem => {
             articles.find({title:currentItem.title}).count().then(count=>{
                 if(count <= 0){
+                    id.forEach(userId=>{
+                        bot.sendMessage(userId,`New post is out! \n${currentItem.title}\n${currentItem.link}`)
+                    })
                     const article = new Article(currentItem);
                     article.save()
                             .then(item => {console.log("item saved to database");
