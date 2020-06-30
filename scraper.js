@@ -40,9 +40,7 @@ app.get('/articles',async (req, res)=>{
         keywords: new RegExp(filter, 'i')
     }
     const startIndex = (page - 1) * paginationLimit;
-    results.results = await Article.find(filterQuery).limit(paginationLimit).skip(startIndex).exec().catch(err=>{
-        console.log("123")
-    });
+    results.results = await Article.find(filterQuery).limit(paginationLimit).skip(startIndex).exec();
     res.json(results);
 })
 
