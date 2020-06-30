@@ -45,7 +45,7 @@ app.get('/articles',async (req, res)=>{
 })
 
 const job = new CronJob({
-    cronTime: '0 */10 * * * *',
+    cronTime: '*/10 * * * * *',
     onTick: async function() {
         const articles = mongoose.connection.db.collection('articles');
         const feed = await parser.parseURL("https://news.ycombinator.com/rss");
@@ -56,7 +56,6 @@ const job = new CronJob({
                 bot.sendMessage(userId,`New post is out! \n${item.title}\n${item.link}`)
             })
             const article = new Article(item);
-            console.log(stopword.removeStopwords(article.title.split(' ')).join(' '))
             article.keywords = stopword.removeStopwords(article.title.split(' ')).join(' ');
             article.save()
                 .then(item => {console.log("The item has been to database");
