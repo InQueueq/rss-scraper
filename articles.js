@@ -7,7 +7,11 @@ const articleSchema = new mongoose.Schema({
     comments: String,
     content: String,
     contentSnippet: String,
-    isoDate: Date
+    isoDate: Date,
+    keywords:{
+        type: String,
+        default: ''
+    }
 });
 
 module.exports = mongoose.model('article',articleSchema)
