@@ -40,15 +40,19 @@ app.get('/articles',async (req, res)=>{
         keywords: new RegExp(filter, 'i')
     }
     const startIndex = (page - 1) * paginationLimit;
-    results.results = await Article.find(filterQuery).limit(paginationLimit).skip(startIndex).exec();
+    results.results = await Article.find(filterQuery).limit(paginationLimit).skip(startIndex).exec().catch(err=>{
+        console.log("123")
+    });
     res.json(results);
 })
 
 const job = new CronJob({
-    cronTime: '*/10 * * * * *',
+    cronTime: '0 */5 * * * *',
     onTick: async function() {
         const articles = mongoose.connection.db.collection('articles');
-        const feed = await parser.parseURL("https://news.ycombinator.com/rss");
+        const feed = await parser.parseURL("https://news.ycombinator.com/rss").catch(err=>{
+            console.log("Unable to parse")
+        });
         const maxPublishingDate = await articles.find().count() <= 0 ? new Date(1991,11) : (await articles.find().sort({pubDate:-1}).limit(1).toArray())[0].pubDate;
         const filteredArticles = feed.items.filter(item=>new Date(item.pubDate) > maxPublishingDate);
         filteredArticles.map(item=>{
