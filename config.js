@@ -1,1 +1,0 @@
-module.exports = {TOKEN:'1181561733:AAE_yN_GOadfb7jZnBtlilO7RH04tx6jGNs', URI:'mongodb://localhost:27017/rss'}
