@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
-mongoose.connect('mongodb://localhost:27017/rss',{useNewUrlParser:true,useUnifiedTopology: true},);
+const URI = require('./config.js').URI
+mongoose.connect(URI,{useNewUrlParser:true,useUnifiedTopology: true},);
 const Parser = require("rss-parser");
 const CronJob = require('cron').CronJob;
 const Article = require('./articles')
@@ -10,7 +11,7 @@ const app = express()
 const PORT = 5000 || process.env.PORT;
 const paginationLimit = 20;
 const TelegramBot = require('node-telegram-bot-api');
-const TOKEN = '1181561733:AAE_yN_GOadfb7jZnBtlilO7RH04tx6jGNs';
+const TOKEN = require('./config.js').TOKEN
 const id = [];
 
 const parser = new Parser();
