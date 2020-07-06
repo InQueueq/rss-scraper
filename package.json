@@ -11,11 +11,11 @@
   "license": "ISC",
   "dependencies": {
     "cron": "^1.8.2",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "mongoose": "^5.9.19",
+    "mongodb": "^3.5.9",
     "node-telegram-bot-api": "^0.50.0",
     "rss-parser": "^3.8.0",
-    "stopword": "^1.0.1",
-    "validator": "^13.1.1"
+    "stopword": "^1.0.1"
   }
 }
