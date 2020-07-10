@@ -42,10 +42,10 @@ var express = require("express");
 var TelegramBot = require("node-telegram-bot-api");
 var Parser = require("rss-parser");
 var Cron = require("cron");
-var stopword = require("stopword");
+var stopWord = require("stopword");
 var TOKEN = process.env.TOKEN;
 var NGROK_URL = process.env.NGROK_URL;
-var PORT = 5000 || process.env.PORT;
+var PORT = parseInt(process.env.PORT) || 5000;
 var paginationLimit = 20;
 var URI = process.env.URI;
 var MongoClient = mongodb.MongoClient;
@@ -82,12 +82,15 @@ var CronJobExtended = /** @class */ (function () {
                                 maxPublishingDate = item ? new Date(item.pubDate) : new Date(0);
                                 filteredArticles = feed.items.filter(function (item) { return new Date(item.pubDate) > maxPublishingDate; });
                                 filteredArticles.forEach(function (item) {
-                                    item.keywords = stopword.removeStopwords(item.title.split(' ')).join(' ');
+                                    item.keywords = stopWord.removeStopwords(item.title.split(' ')).join(' ');
                                 });
-                                if (filteredArticles[0])
-                                    articles.insertMany(filteredArticles);
-                                return [4 /*yield*/, users.find().toArray()];
+                                if (!filteredArticles[0]) return [3 /*break*/, 4];
+                                return [4 /*yield*/, articles.insertMany(filteredArticles)];
                             case 3:
+                                _a.sent();
+                                _a.label = 4;
+                            case 4: return [4 /*yield*/, users.find().toArray()];
+                            case 5:
                                 usersArray = _a.sent();
                                 usersArray.forEach(function (user) {
                                     filteredArticles.forEach(function (item) {
@@ -119,15 +122,17 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                 job = new CronJobExtended(articles, users);
                 job.start();
                 app.get('/articles', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                    var results, page, filter, filterQuery, startIndex, _a;
+                    var query, results, page, filter, filterQuery, startIndex, _a, count;
                     return __generator(this, function (_b) {
                         switch (_b.label) {
                             case 0:
+                                query = req.query;
                                 results = {
                                     results: undefined
                                 };
-                                page = parseInt(req.query.page) || 1;
-                                filter = req.query.filter || "";
+                                console.log(query);
+                                page = query.page;
+                                filter = query.filter || "";
                                 filterQuery = {
                                     keywords: new RegExp(filter, 'i')
                                 };
@@ -136,6 +141,11 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                                 return [4 /*yield*/, articles.find(filterQuery).limit(paginationLimit).skip(startIndex).toArray()];
                             case 1:
                                 _a.results = _b.sent();
+                                count = 0;
+                                results.results.forEach(function (_) {
+                                    count++;
+                                });
+                                console.log(count);
                                 return [4 /*yield*/, res.json(results)];
                             case 2:
                                 _b.sent();
