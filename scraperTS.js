@@ -66,15 +66,13 @@ var CronJobExtended = /** @class */ (function () {
         this.articles = articles;
         this.users = users;
         this.job = new CronJob({
-            cronTime: '*/15 * * * * *',
+            cronTime: '0 */5 * * * *',
             onTick: function () {
                 return __awaiter(this, void 0, void 0, function () {
                     var feed, item, maxPublishingDate, filteredArticles, usersArray;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
-                            case 0:
-                                console.log(123);
-                                return [4 /*yield*/, parser.parseURL("https://news.ycombinator.com/rss")];
+                            case 0: return [4 /*yield*/, parser.parseURL("https://news.ycombinator.com/rss")];
                             case 1:
                                 feed = _a.sent();
                                 return [4 /*yield*/, articles.find().toArray()];
