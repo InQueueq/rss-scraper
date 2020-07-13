@@ -66,13 +66,15 @@ var CronJobExtended = /** @class */ (function () {
         this.articles = articles;
         this.users = users;
         this.job = new CronJob({
-            cronTime: '0 */5 * * * *',
+            cronTime: '*/15 * * * * *',
             onTick: function () {
                 return __awaiter(this, void 0, void 0, function () {
                     var feed, item, maxPublishingDate, filteredArticles, usersArray;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
-                            case 0: return [4 /*yield*/, parser.parseURL("https://news.ycombinator.com/rss")];
+                            case 0:
+                                console.log(123);
+                                return [4 /*yield*/, parser.parseURL("https://news.ycombinator.com/rss")];
                             case 1:
                                 feed = _a.sent();
                                 return [4 /*yield*/, articles.find().toArray()];
@@ -122,7 +124,7 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                 job = new CronJobExtended(articles, users);
                 job.start();
                 app.get('/articles', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                    var query, results, page, filter, filterQuery, startIndex, _a, count;
+                    var query, results, page, filter, filterQuery, startIndex, _a;
                     return __generator(this, function (_b) {
                         switch (_b.label) {
                             case 0:
@@ -130,7 +132,6 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                                 results = {
                                     results: undefined
                                 };
-                                console.log(query);
                                 page = query.page;
                                 filter = query.filter || "";
                                 filterQuery = {
@@ -141,14 +142,7 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                                 return [4 /*yield*/, articles.find(filterQuery).limit(paginationLimit).skip(startIndex).toArray()];
                             case 1:
                                 _a.results = _b.sent();
-                                count = 0;
-                                results.results.forEach(function (_) {
-                                    count++;
-                                });
-                                console.log(count);
-                                return [4 /*yield*/, res.json(results)];
-                            case 2:
-                                _b.sent();
+                                res.json(results);
                                 return [2 /*return*/];
                         }
                     });

@@ -18,6 +18,7 @@ const dbName: string = 'rss';
 const app = express();
 
 app.use(express.json());
+
 const bot = new TelegramBot(TOKEN, {
     webHook: {
         port: PORT,
@@ -46,7 +47,7 @@ interface User {
     language_code?: string
 }
 
-type MyQuery = {
+type SearchQuery = {
     page?: number,
     filter?: string
 };
@@ -93,11 +94,10 @@ const main = async() : Promise<void> => {
     job.start();
 
     app.get('/articles', async (req: express.Request, res: express.Response) => {
-        const query = req.query as MyQuery;
+        const query = req.query as SearchQuery;
         const results: {results: Article[]} = {
             results: undefined
         };
-        console.log(query)
         const page: number = query.page;
         const filter: string = query.filter || ""
         const filterQuery: {keywords: RegExp} = {
@@ -105,7 +105,7 @@ const main = async() : Promise<void> => {
         }
         const startIndex: number = (page - 1) * paginationLimit;
         results.results = await articles.find(filterQuery).limit(paginationLimit).skip(startIndex).toArray();
-        await res.json(results);
+        res.json(results);
     })
 
     app.post(`/bot${TOKEN}`, (req: express.Request, res: express.Response) => {
