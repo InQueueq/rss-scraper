@@ -1,4 +1,17 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -38,79 +51,66 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 require('dotenv/config');
 var mongodb = require("mongodb");
-var express = require("express");
-var TelegramBot = require("node-telegram-bot-api");
 var Parser = require("rss-parser");
 var Cron = require("cron");
 var stopWord = require("stopword");
-var TOKEN = process.env.TOKEN;
-var NGROK_URL = process.env.NGROK_URL;
 var PORT = parseInt(process.env.PORT) || 5000;
-var paginationLimit = 20;
 var URI = process.env.URI;
 var MongoClient = mongodb.MongoClient;
 var CronJob = Cron.CronJob;
 var client = new MongoClient(URI);
 var parser = new Parser();
 var dbName = 'rss';
-var app = express();
-app.use(express.json());
-var bot = new TelegramBot(TOKEN, {
-    webHook: {
-        port: PORT
-    }
-});
-bot.setWebHook(NGROK_URL + "/bot" + TOKEN);
-var CronJobExtended = /** @class */ (function () {
+var bot_1 = require("./bot");
+var app_1 = require("./app");
+var articles_controller_1 = require("./articles.controller");
+var CronJobExtended = /** @class */ (function (_super) {
+    __extends(CronJobExtended, _super);
     function CronJobExtended(articles, users) {
-        this.articles = articles;
-        this.users = users;
-        this.job = new CronJob({
-            cronTime: '0 */5 * * * *',
-            onTick: function () {
-                return __awaiter(this, void 0, void 0, function () {
-                    var feed, item, maxPublishingDate, filteredArticles, usersArray;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, parser.parseURL("https://news.ycombinator.com/rss")];
-                            case 1:
-                                feed = _a.sent();
-                                return [4 /*yield*/, articles.find().toArray()];
-                            case 2:
-                                item = (_a.sent())
-                                    .sort(function (a, b) { return (new Date(a.pubDate) > new Date(b.pubDate)) ? -1 : ((new Date(b.pubDate) > new Date(a.pubDate)) ? 1 : 0); })[0];
-                                maxPublishingDate = item ? new Date(item.pubDate) : new Date(0);
-                                filteredArticles = feed.items.filter(function (item) { return new Date(item.pubDate) > maxPublishingDate; });
-                                filteredArticles.forEach(function (item) {
-                                    item.keywords = stopWord.removeStopwords(item.title.split(' ')).join(' ');
-                                });
-                                if (!filteredArticles[0]) return [3 /*break*/, 4];
-                                return [4 /*yield*/, articles.insertMany(filteredArticles)];
-                            case 3:
-                                _a.sent();
-                                _a.label = 4;
-                            case 4: return [4 /*yield*/, users.find().toArray()];
-                            case 5:
-                                usersArray = _a.sent();
-                                usersArray.forEach(function (user) {
-                                    filteredArticles.forEach(function (item) {
-                                        bot.sendMessage(user.id, "New post is out! \n" + item.title + "\n" + item.link);
-                                    });
-                                });
-                                return [2 /*return*/];
-                        }
-                    });
-                });
-            }
-        });
+        var _this = _super.call(this, '*/15 * * * * *', function () { return _this.tick(); }) || this;
+        _this.articles = articles;
+        _this.users = users;
+        return _this;
     }
-    CronJobExtended.prototype.start = function () {
-        this.job.start();
+    CronJobExtended.prototype.tick = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var feed, item, maxPublishingDate, filteredArticles, usersArray;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, parser.parseURL("https://news.ycombinator.com/rss")];
+                    case 1:
+                        feed = _a.sent();
+                        return [4 /*yield*/, this.articles.find().sort({ _id: -1 }).limit(1).toArray()];
+                    case 2:
+                        item = (_a.sent())[0];
+                        maxPublishingDate = item ? new Date(item.pubDate) : new Date(0);
+                        filteredArticles = feed.items.filter(function (item) { return new Date(item.pubDate) > maxPublishingDate; })
+                            .sort(function (a, b) { return (new Date(a.pubDate) > new Date(b.pubDate) ? 1 : -1); });
+                        filteredArticles.forEach(function (item) {
+                            item.keywords = stopWord.removeStopwords(item.title.split(' ')).join(' ');
+                        });
+                        if (!filteredArticles[0]) return [3 /*break*/, 4];
+                        return [4 /*yield*/, this.articles.insertMany(filteredArticles)];
+                    case 3:
+                        _a.sent();
+                        _a.label = 4;
+                    case 4: return [4 /*yield*/, this.users.find().toArray()];
+                    case 5:
+                        usersArray = _a.sent();
+                        usersArray.forEach(function (user) {
+                            filteredArticles.forEach(function (item) {
+                                bot_1.bot.sendMessage(user.id, "New post is out! \n" + item.title + "\n" + item.link);
+                            });
+                        });
+                        return [2 /*return*/];
+                }
+            });
+        });
     };
     return CronJobExtended;
-}());
+}(CronJob));
 var main = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var db, articles, users, job;
+    var db, articles, users, job, app;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, client.connect()];
@@ -121,43 +121,18 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                 users = db.collection('users');
                 job = new CronJobExtended(articles, users);
                 job.start();
-                app.get('/articles', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                    var query, results, page, filter, filterQuery, startIndex, _a;
-                    return __generator(this, function (_b) {
-                        switch (_b.label) {
-                            case 0:
-                                query = req.query;
-                                results = {
-                                    results: undefined
-                                };
-                                page = query.page;
-                                filter = query.filter || "";
-                                filterQuery = {
-                                    keywords: new RegExp(filter, 'i')
-                                };
-                                startIndex = (page - 1) * paginationLimit;
-                                _a = results;
-                                return [4 /*yield*/, articles.find(filterQuery).limit(paginationLimit).skip(startIndex).toArray()];
-                            case 1:
-                                _a.results = _b.sent();
-                                res.json(results);
-                                return [2 /*return*/];
-                        }
-                    });
-                }); });
-                app.post("/bot" + TOKEN, function (req, res) {
-                    bot.processUpdate(req.body);
-                    res.sendStatus(200);
-                });
-                app.listen(PORT, function () { return console.log("Server started on " + PORT + " port"); });
-                bot.onText(/\/start/, function (msg) {
+                bot_1.bot.onText(/\/start/, function (msg) {
                     users.findOne(msg.from).then(function (user) {
-                        bot.sendMessage(user.id, "Hello " + user.first_name + ", welcome!");
+                        bot_1.bot.sendMessage(user.id, "Hello " + user.first_name + ", welcome!");
                     })["catch"](function (user) {
                         users.insertOne(msg.from);
-                        bot.sendMessage(user.id, "Hello " + user.first_name + ", welcome!");
+                        bot_1.bot.sendMessage(user.id, "Hello " + user.first_name + ", welcome!");
                     });
                 });
+                app = new app_1["default"]([
+                    new articles_controller_1["default"](articles, users),
+                ], PORT);
+                app.listen();
                 return [2 /*return*/];
         }
     });

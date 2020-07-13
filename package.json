@@ -21,6 +21,8 @@
     "mongodb": "^3.5.9",
     "node-telegram-bot-api": "^0.50.0",
     "rss-parser": "^3.8.0",
-    "stopword": "^1.0.1"
+    "stopword": "^1.0.1",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.6"
   }
 }
