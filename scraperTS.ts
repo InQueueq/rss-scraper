@@ -22,25 +22,20 @@ class CronJobExtended extends CronJob{
     private users: mongodb.Collection<User>;
 
     constructor(articles: mongodb.Collection<Article>,users: mongodb.Collection<User>) {
-        super('0 */5 * * * *',() => this.tick());
+        super('*/15 * * * * *',() => this.tick());
         this.articles = articles;
         this.users = users;
     }
     async tick(){
         const feed: Parser.Output = await parser.parseURL("https://news.ycombinator.com/rss")
-
         const item: Article = (await this.articles.find().sort({_id : -1}).limit(1).toArray())[0];
         const maxPublishingDate: Date = item ? new Date(item.pubDate) : new Date(0);
-
         const filteredArticles: Parser.Item[] = feed.items.filter(item => new Date(item.pubDate) > maxPublishingDate)
             .sort((a,b)=>(new Date(a.pubDate) > new Date(b.pubDate)? 1 : -1));
-
         filteredArticles.forEach(item=>{
             item.keywords = stopWord.removeStopwords(item.title.split(' ')).join(' ');
         })
-
         if(filteredArticles[0]) await this.articles.insertMany(filteredArticles);
-
         const usersArray: User[] = await this.users.find().toArray()
         usersArray.forEach(user=>{
             filteredArticles.forEach(item=>{
@@ -68,7 +63,7 @@ const main = async() => {
         });
     });
 
-    const app = new App(
+    const app: App = new App(
         [
             new ArticlesController(articles,users),
         ],

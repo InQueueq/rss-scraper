@@ -6,7 +6,7 @@ const paginationLimit: number = 20;
 const TOKEN: string = process.env.TOKEN;
 
 class ArticlesController {
-    public router = express.Router();
+    public router: express.Router = express.Router();
     private articles: mongodb.Collection<Article>;
     private users: mongodb.Collection<User>
 
@@ -36,7 +36,7 @@ class ArticlesController {
         res.json(results);
     }
 
-    postToBot =  (req: express.Request, res: express.Response) => {
+    postToBot = (req: express.Request, res: express.Response) => {
         bot.processUpdate(req.body);
         res.sendStatus(200);
     };
