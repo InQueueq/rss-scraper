@@ -22,7 +22,7 @@ class CronJobExtended extends CronJob{
     private users: mongodb.Collection<User>;
 
     constructor(articles: mongodb.Collection<Article>,users: mongodb.Collection<User>) {
-        super('*/15 * * * * *',() => this.tick());
+        super('0 */5 * * * *',() => this.tick());
         this.articles = articles;
         this.users = users;
     }
