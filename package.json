@@ -2,7 +2,7 @@
   "name": "rssparser",
   "version": "1.0.0",
   "description": "",
-  "main": "scraper.js",
+  "main": "scraper_old.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -20,6 +20,7 @@
     "express": "^4.17.1",
     "mongodb": "^3.5.9",
     "node-telegram-bot-api": "^0.50.0",
+    "prettier": "^2.0.5",
     "rss-parser": "^3.8.0",
     "stopword": "^1.0.1",
     "ts-node": "^8.10.2",
