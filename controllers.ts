@@ -5,9 +5,9 @@ const TOKEN: string = process.env.TOKEN;
 import { Article, User, SearchQuery } from "./interfaces";
 import { bot } from "./bot";
 
-export class Controller {
+export abstract class Controller {
   public router: express.Router;
-  constructor(router: express.Router) {
+  protected constructor(router: express.Router) {
     this.router = router;
   }
 }
